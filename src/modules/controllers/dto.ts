@@ -12,3 +12,4 @@ export class UpdateProductsDto {
   Price: number;
   isCompleted: boolean;
 }
+
