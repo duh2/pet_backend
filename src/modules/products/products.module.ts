@@ -15,7 +15,6 @@ import 'mysql2'
 })
 export class ProductsModule {}
 
-let mysql2 =require('mysql2');
 
 @Module({
   imports:[],
