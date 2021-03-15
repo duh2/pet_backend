@@ -11,31 +11,19 @@ import {
 import { ProductsEntity } from '../products/entities/products.entity';
 import { CreateProductsDto, UpdateProductsDto } from './dto';
 import {
-  ProductsInterface,
-  ProductsService,
-  ProductsServiceMySQL,
+  ProductsMethods,
 } from '../products/services/products.service';
-import mysql from 'mysql';
-import {createPool} from "mysql2";
-import {type} from "os";
-export var connection = createPool({
-  host:'localhost',
-  user:'root',
-  password:'',
-  database:'products'
-}).promise()
-
-
 @Controller('rest/products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+
+  constructor(private readonly productsService: ProductsMethods) {}
   @Get()
-  getAll(): Promise<ProductsEntity[]> {
-    return this.productsService.findAll();
+  findAll(): Promise<ProductsEntity[]> {
+    return this.productsService.getAll();
   }
   @Get(':id')
   getOne(@Param('id') id: string): Promise<ProductsEntity> {
-    return this.productsService.findOne(id);
+    return this.productsService.getOne(id);
   }
 
   @Post()
@@ -48,7 +36,7 @@ export class ProductsController {
     products.Model = createProductsDto.Model;
     products.Price = createProductsDto.Price;
     products.isCompleted = createProductsDto.isCompleted;
-    return this.productsService.create(products);
+    return this.productsService.createProduct(products);
   }
 
   @Put(':id')
@@ -56,7 +44,7 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() { Img, Sex, Model, Price, isCompleted = false }: UpdateProductsDto,
   ): Promise<ProductsEntity> {
-    const products = await this.productsService.findOne(id);
+    const products = await this.productsService.getOne(id);
     if (products === undefined) {
       throw new BadRequestException('Invalid product');
     }
@@ -65,16 +53,16 @@ export class ProductsController {
     products.Model = Model;
     products.Price = Price;
     products.isCompleted = isCompleted;
-    return this.productsService.update(products);
+    return this.productsService.updateProduct(products);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string): Promise<void> {
-    return this.productsService.remove(id);
+    return this.productsService.deleteProduct(id);
   }
 }
-@Controller('products')
-export class ProductsControllerSQLCRUD{
+
+/*export class ProductsControllerSQLCRUD{
   constructor(private readonly productsServiceMySQL: ProductsServiceMySQL) {}
   @Get()
   getAll(){
@@ -87,7 +75,8 @@ export class ProductsControllerSQLCRUD{
 @Post()
 createOne(
     @Body() createProductsDto:CreateProductsDto){
-    let product : ProductsInterface = {
+    let product : ProductsEntity = {
+      id: null,
       Img: createProductsDto.Img,
       Sex: createProductsDto.Sex,
       Model: createProductsDto.Model,
@@ -99,7 +88,7 @@ createOne(
 @Put(':id')
   updateOne(@Param('id') id: string,
             @Body() { Img, Sex, Model, Price, isCompleted = false }:UpdateProductsDto){
-  let product : ProductsInterface = {
+  let product : ProductsEntity = {
     Img: Img,
     Sex: Sex,
     Model: Model,
@@ -112,4 +101,4 @@ createOne(
   removeOne(@Param('id') id: string){
     return this.productsServiceMySQL.deleteProduct(id)
 }
-}
+}*/

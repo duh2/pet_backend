@@ -1,7 +1,7 @@
-import {Get, Injectable, Param, Post} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ProductsEntity } from '../entities/products.entity';
+import {Inject, Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Repository} from 'typeorm';
+import {ProductsEntity} from '../entities/products.entity';
 import 'mysql2'
 import {createConnection,} from "mysql2";
 
@@ -13,78 +13,131 @@ const connection = createConnection({
 });
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements ProductsMethods {
   constructor(
     @InjectRepository(ProductsEntity)
     private productsRepository: Repository<ProductsEntity>,
   ) {}
 
-  findAll(): Promise<ProductsEntity[]> {
+    getAll(): Promise<ProductsEntity[]> {
     return this.productsRepository.find();
   }
-  create(products: ProductsEntity): Promise<ProductsEntity> {
+    createProduct(products: ProductsEntity): Promise<ProductsEntity> {
     delete products.id;
     return this.productsRepository.save(products);
   }
-  async update(products: ProductsEntity): Promise<ProductsEntity> {
+  async updateProduct(products: ProductsEntity): Promise<ProductsEntity> {
     const loadedProducts = await this.productsRepository.findOneOrFail(
       products.id,
     );
     return this.productsRepository.save(loadedProducts);
   }
-  findOne(id: string): Promise<ProductsEntity> {
+    getOne(id: string): Promise<ProductsEntity> {
     return this.productsRepository.findOne(id);
   }
-  async remove(id: string): Promise<void> {
+  async deleteProduct(id: string): Promise<void> {
     await this.productsRepository.delete(id);
   }
 }
-export interface ProductsInterface{
-  Img: string;
-  Sex: string;
-  Model: string;
-  Price: number;
-  isCompleted: boolean;
-}
-@Injectable()
-export class ProductsServiceMySQL {
-    getAll(){
-        connection.connect();
-        connection.query('SELECT * FROM products_entity',function (error,result,fields) {
-            return  {result}
-        })
-    }
-    getOne(id:string){
-        connection.connect();
-        connection.query('SELECT * FROM products_entity WHERE id ='+id,function (error,result,fields) {
-            return {result}
-        })
-    }
-    createProduct(product:ProductsInterface){
-        connection.connect();
-        connection.query(
-            'INSERT INTO products_entity (Img, Sex, Model, Price, isCompleted) VALUES("'+product.Img+'","'+product.Sex+'","'+product.Model+'",'+product.Price+","+product.isCompleted+")",
-            function (error,result,fields) {
-                return result
-            })
-    }
-    updateProduct(id:string,product:ProductsInterface){
-        connection.connect()
-        connection.query(
-            'UPDATE products_entity SET Img ="'+product.Img+'",Sex="'+product.Sex+'", Model="'+product.Model+'", Price='+product.Price+',isCompleted='+product.isCompleted+'   WHERE id ="'+id+'"',function (
-                error,result,fields
-            ) {
-            return result
-            })
-    }
-    deleteProduct(id:string){
-        connection.connect()
-        connection.query('DELETE FROM products_entity WHERE id="'+id+'"',function (error,result,fields) {
-        console.log(error)
-            return result
-        })
-    }
+
+export interface ProductsMethods {
+    getAll(): Promise<ProductsEntity[]>;
+
+    getOne(id: string): Promise<ProductsEntity>;
+
+    createProduct(product: ProductsEntity): Promise<ProductsEntity>;
+
+    updateProduct(product: ProductsEntity): Promise<ProductsEntity>;
+
+    deleteProduct(id: string): Promise<void>;
 }
 
+@Injectable()
+export class ProductsServiceMySQL implements ProductsMethods {
+    constructor(
+
+    ) {}
+
+    getAll() {
+        connection.connect();
+        return new Promise<ProductsEntity[]>((resolve, reject) => {
+            connection.query('SELECT * FROM products_entity', function (error, result, fields) {
+                var string = JSON.stringify(result)
+                var json = JSON.parse(string)
+                var allData: Array<any> = []
+                for (let i = 0; i < json.length; i++) {
+                    allData.push(json[i])
+                }
+                resolve(allData);
+            })
+        })
+    }
+
+    getOne(id: string) {
+        connection.connect();
+        return new Promise<ProductsEntity>((resolve, reject) => {
+            connection.query('SELECT * FROM products_entity WHERE id ="' + id + '"', function (error, result, fields) {
+
+                console.log(fields.length)
+                resolve({
+                    id: result[0].id,
+                    Img: result[0].Img,
+                    Sex: result[0].Sex,
+                    Model: result[0].Model,
+                    Price: result[0].Price,
+                    isCompleted: result[0].isCompleted,
+                });
+            })
+        })
+    }
+
+    createProduct(product: ProductsEntity) {
+        connection.connect();
+        return new Promise<ProductsEntity>((resolve, reject) => {
+            connection.query(
+                'INSERT INTO products_entity (Img, Sex, Model, Price, isCompleted) VALUES("' + product.Img + '","' + product.Sex + '","' + product.Model + '",' + product.Price + "," + product.isCompleted + ")",
+                function (error, result, fields) {
+                    delete product.id
+                    return resolve({
+                        id: product.id,
+                        Img: product.Img,
+                        Sex: product.Sex,
+                        Model: product.Model,
+                        Price: product.Price,
+                        isCompleted: product.isCompleted,
+                    })
+                })
+        })
+    }
+
+    updateProduct( product: ProductsEntity) {
+        connection.connect()
+        return new Promise<ProductsEntity>((resolve, reject) => {
+            connection.query(
+                'UPDATE products_entity SET Img ="' + product.Img + '",Sex="' + product.Sex + '", Model="' + product.Model + '", Price=' + product.Price + ',isCompleted=' + product.isCompleted + '   WHERE id ="' + product.id + '"', function (
+                    error, result, fields
+                ) {
+                    return resolve({
+                        id: product.id,
+                        Img: product.Img,
+                        Sex: product.Sex,
+                        Model: product.Model,
+                        Price: product.Price,
+                        isCompleted: product.isCompleted,
+                    })
+                })
+        })
+    }
+
+    deleteProduct(id: string) {
+        connection.connect()
+        return new Promise<void>((resolve, reject) => {
+            connection.query('DELETE FROM products_entity WHERE id="' + id + '"', function (error, result, fields) {
+
+                return resolve
+            })
+        })
+    }
+}
 
 
