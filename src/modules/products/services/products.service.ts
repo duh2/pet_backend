@@ -1,4 +1,4 @@
-import {Inject, Injectable} from '@nestjs/common';
+import {Inject, Injectable, Param} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {ProductsEntity} from '../entities/products.entity';
@@ -12,8 +12,9 @@ const connection = createConnection({
     database: 'products'
 });
 
+
 @Injectable()
-export class ProductsService implements ProductsMethods {
+export class ProductsService implements ProductsMethods{
   constructor(
     @InjectRepository(ProductsEntity)
     private productsRepository: Repository<ProductsEntity>,
@@ -40,7 +41,8 @@ export class ProductsService implements ProductsMethods {
   }
 }
 
-export interface ProductsMethods {
+export interface ProductsMethods{
+
     getAll(): Promise<ProductsEntity[]>;
 
     getOne(id: string): Promise<ProductsEntity>;
@@ -53,12 +55,9 @@ export interface ProductsMethods {
 }
 
 @Injectable()
-export class ProductsServiceMySQL implements ProductsMethods {
-    constructor(
+export class ProductsServiceMySQL implements ProductsMethods{
 
-    ) {}
-
-    getAll() {
+    getAll():Promise<ProductsEntity[]> {
         connection.connect();
         return new Promise<ProductsEntity[]>((resolve, reject) => {
             connection.query('SELECT * FROM products_entity', function (error, result, fields) {
@@ -139,5 +138,7 @@ export class ProductsServiceMySQL implements ProductsMethods {
         })
     }
 }
+
+
 
 

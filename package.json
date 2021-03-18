@@ -29,6 +29,7 @@
     "mysql": "^2.18.1",
     "mysql-crud": "^0.1.4",
     "mysql2": "^2.2.5",
+    "nestjs-dotenv": "^1.2.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6",

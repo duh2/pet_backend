@@ -2,33 +2,29 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsEntity } from './entities/products.entity';
 import {ProductsController} from "../controllers/products.controller";
-import {ProductsService, ProductsServiceMySQL} from "./services/products.service";
+import { ProductsMethods, ProductsService, ProductsServiceMySQL} from "./services/products.service";
 import 'mysql2'
-import {DotenvService} from "./services/dotenv.service";
 import {Repository} from "typeorm";
-export const env = process.env.ENV_CHOICE
+import {ConfigModule, ConfigService} from "nestjs-dotenv";
 
 
+export let factoryProvider ={provide:"ChooseImplementationToken",
+    useFactory:(env:ConfigService):ProductsMethods=>{
+  console.log(env.get('ENV_CHOICE'))
+  return (env.get('ENV_CHOICE')==='typeORM'? new ProductsService(new Repository<ProductsEntity>()):
+      new ProductsServiceMySQL())
 
+
+}, inject:[ConfigService]}
 
 
 
 @Module(
     {
-  imports: [TypeOrmModule.forFeature([ProductsEntity]),],
+  imports: [TypeOrmModule.forFeature([ProductsEntity]),
+    ConfigModule.forRoot()],
   controllers: [ProductsController],
-  providers: [{
-    provide:ProductsService,
-    useFactory: () => {
-      const env = process.env.ENV_CHOICE
-      switch (env) {
-        case 'typeORM': return new ProductsService(new Repository<ProductsEntity>())
-        case 'MySQL': return new ProductsServiceMySQL()
-      }
-
-    },
-    inject: [ProductsService,ProductsServiceMySQL],
-  }],
+  providers: [factoryProvider],
 })
 export class ProductsModule {}
 

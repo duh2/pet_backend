@@ -3,7 +3,7 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, Inject,
   Param,
   Post,
   Put,
@@ -11,12 +11,13 @@ import {
 import { ProductsEntity } from '../products/entities/products.entity';
 import { CreateProductsDto, UpdateProductsDto } from './dto';
 import {
-  ProductsMethods,
+  ProductsMethods
 } from '../products/services/products.service';
-@Controller('rest/products')
+@Controller('products')
 export class ProductsController {
 
-  constructor(private readonly productsService: ProductsMethods) {}
+
+  constructor(@Inject("ChooseImplementationToken")private productsService:ProductsMethods) {}
   @Get()
   findAll(): Promise<ProductsEntity[]> {
     return this.productsService.getAll();
@@ -25,6 +26,10 @@ export class ProductsController {
   getOne(@Param('id') id: string): Promise<ProductsEntity> {
     return this.productsService.getOne(id);
   }
+
+
+
+
 
   @Post()
   create(
@@ -62,43 +67,4 @@ export class ProductsController {
   }
 }
 
-/*export class ProductsControllerSQLCRUD{
-  constructor(private readonly productsServiceMySQL: ProductsServiceMySQL) {}
-  @Get()
-  getAll(){
-    return this.productsServiceMySQL.getAll()
-  }
-  @Get(':id')
-  getone(@Param('id') id: string){
-    return this.productsServiceMySQL.getOne(id);
-  }
-@Post()
-createOne(
-    @Body() createProductsDto:CreateProductsDto){
-    let product : ProductsEntity = {
-      id: null,
-      Img: createProductsDto.Img,
-      Sex: createProductsDto.Sex,
-      Model: createProductsDto.Model,
-      Price: createProductsDto.Price,
-      isCompleted: createProductsDto.isCompleted,
-    }
-    return this.productsServiceMySQL.createProduct(product)
-}
-@Put(':id')
-  updateOne(@Param('id') id: string,
-            @Body() { Img, Sex, Model, Price, isCompleted = false }:UpdateProductsDto){
-  let product : ProductsEntity = {
-    Img: Img,
-    Sex: Sex,
-    Model: Model,
-    Price: Price,
-    isCompleted: isCompleted,
-  }
-  return this.productsServiceMySQL.updateProduct(id,product[0])
-}
-@Delete(':id')
-  removeOne(@Param('id') id: string){
-    return this.productsServiceMySQL.deleteProduct(id)
-}
-}*/
+
