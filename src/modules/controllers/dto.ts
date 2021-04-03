@@ -12,4 +12,8 @@ export class UpdateProductsDto {
   Price: number;
   isCompleted: boolean;
 }
-
+export class CreateCartDto {
+  ProductID: string;
+  UUID: string;
+  isCompleted: boolean;
+}
